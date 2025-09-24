@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: quotes_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d quotes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: ./backend
+    volumes:
+      - ./backend:/app
+      - /app/node_modules
+      - /app/dist  
+    ports:
+      - "${BACKEND_PORT}:${PORT}"
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT}
+      DATABASE_URL: ${DATABASE_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      QUOTE_API_URL: ${QUOTE_API_URL}
+      DOCKER_ENV: "true"  # Add this line
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  seed:
+    build: ./backend
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+    command: npm run seed
+    restart: "no"  # Run once and stop
+    profiles:
+      - seed
+
+  client:
+    build: ./frontend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    ports:
+      - "${FRONTEND_PORT}:3000"
+    depends_on:
+      - server
+    environment:
+      REACT_APP_BACKEND_URL: ${BACKEND_URL}
+    restart: unless-stopped
+
+volumes:
+  db-data:

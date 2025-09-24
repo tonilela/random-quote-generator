@@ -1,0 +1,36 @@
+
+CREATE TABLE IF NOT EXISTS users (
+  id INTEGER PRIMARY KEY,
+  name VARCHAR(255) NOT NULL, 
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password_hash VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS quotes (
+  id SERIAL PRIMARY KEY,
+  external_id VARCHAR(255) UNIQUE,
+  content TEXT NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  total_likes INTEGER DEFAULT 0,
+  total_ratings INTEGER DEFAULT 0,
+  average_rating DECIMAL(3,2) DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS quote_likes (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, quote_id)
+);
+
+CREATE TABLE IF NOT EXISTS quote_ratings (
+  id SERIAL PRIMARY KEY,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  quote_id INTEGER REFERENCES quotes(id) ON DELETE CASCADE,
+  rating INTEGER CHECK (rating >= 1 AND rating <= 5),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(user_id, quote_id)
+);
