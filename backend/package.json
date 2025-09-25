@@ -2,6 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "A random quote generator backend built with Fastify and TypeScript.",
+  "engines": {
+    "node": "20.x"
+  },
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
