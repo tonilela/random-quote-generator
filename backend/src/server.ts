@@ -3,7 +3,6 @@ import fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import mercurius from 'mercurius';
-import './types/fastify-jwt';
 import { config } from './config/config';
 import { connectToDatabase } from './database/sequelize';
 
