@@ -51,7 +51,8 @@ export const getRandomQuote = async (
         where: { averageRating: { [Op.gte]: 4.0 }, totalRatings: { [Op.gte]: 2 } },
       });
       if (topQuotes.length > 0) {
-        quote = topQuotes[Math.floor(Math.random() * topQuotes.length)];
+        const selectedQuote = topQuotes[Math.floor(Math.random() * topQuotes.length)];
+        quote = selectedQuote || null;
       }
     }
   }
@@ -188,7 +189,9 @@ export const getLikedQuotes = async (userId: string): Promise<QuoteWithUserData[
   return likedQuotesWithData.map((quote) => {
     const plainQuote = quote.get({ plain: true }) as QuoteWithIncludedRatings;
     const userRating =
-      plainQuote.ratings && plainQuote.ratings.length > 0 ? plainQuote.ratings[0].rating : 0;
+      plainQuote.ratings && plainQuote.ratings.length > 0
+        ? (plainQuote.ratings[0]?.rating ?? 0)
+        : 0;
 
     return {
       id: plainQuote.id,

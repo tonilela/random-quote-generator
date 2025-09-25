@@ -18,12 +18,12 @@ function requireAuth(request: FastifyRequest): AuthenticatedUser {
   if (!request.user) {
     throw new Error('Authentication required');
   }
-  return request.user;
+  return request.user as AuthenticatedUser;
 }
 
 export async function getRandomQuote(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const user = request.user || null;
+    const user = (request.user as AuthenticatedUser) || null;
     const quote = await quoteService.getRandomQuote(user);
     return reply.send(quote);
   } catch (error) {
@@ -92,7 +92,7 @@ export async function searchQuotes(
   }
 
   try {
-    const user = request.user || null;
+    const user = (request.user as AuthenticatedUser) || null;
     const quotes = await quoteService.searchQuotes(searchTerm, user);
     return reply.send(quotes);
   } catch (error) {

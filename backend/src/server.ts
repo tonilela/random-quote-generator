@@ -3,7 +3,7 @@ import fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
 import mercurius from 'mercurius';
-
+import './types/fastify-jwt';
 import { config } from './config/config';
 import { connectToDatabase } from './database/sequelize';
 
@@ -40,14 +40,9 @@ declare module 'fastify' {
     };
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
-  export interface FastifyRequest {
-    user?: AuthenticatedUser;
-  }
 }
 const server = fastify({
-  logger: process.env.NODE_ENV === 'development' 
-    ? { level: 'info' }
-    : { level: 'warn' },
+  logger: process.env.NODE_ENV === 'development' ? { level: 'info' } : { level: 'warn' },
 });
 
 async function buildServer() {
@@ -70,7 +65,7 @@ async function buildServer() {
       let user: AuthenticatedUser | null = null;
       try {
         await request.jwtVerify();
-        user = request.user || null;
+        user = (request.user as AuthenticatedUser) || null;
       } catch {
         // If it fails (no token, invalid token), user remains null
       }
