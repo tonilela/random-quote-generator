@@ -1,0 +1,14 @@
+{
+  "name": "random-quote-generator",
+  "version": "1.0.0",
+  "scripts": {
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend && npm run build",
+    "heroku-postbuild": "if [ $CLIENT_ENV ]; then npm run prod-frontend; elif [ $SERVER_ENV ]; then npm run prod-backend; else echo no environment detected; fi",
+    "prod-frontend": "npm run build:frontend",
+    "prod-backend": "npm run build:backend"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
