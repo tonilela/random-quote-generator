@@ -10,6 +10,7 @@
     "@emotion/styled": "^11.14.1",
     "@mui/material": "^5.18.0",
     "axios": "^1.7.2",
+    "serve": "^14.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "lucide-react": "^0.544.0",
@@ -22,7 +23,7 @@
     "web-vitals": "^5.1.0"
   },
   "scripts": {
-    "start": "react-scripts start",
+    "start": "serve -s build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
