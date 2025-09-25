@@ -161,3 +161,8 @@ docker-compose up --build -d
 docker-compose exec server npm run seed
 ```
 
+# 🚀 Production Deployment
+This application is deployed on Heroku using separate apps for frontend and backend:
+
+Live Application
+Frontend: https://quote-gen-frontend-a50dcae2aad1.herokuapp.com/
