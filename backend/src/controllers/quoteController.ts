@@ -14,13 +14,6 @@ function isQuoteNotFoundError(error: unknown): boolean {
   return error instanceof Error && error.message === 'Quote not found';
 }
 
-function requireAuth(request: FastifyRequest): AuthenticatedUser {
-  if (!request.user) {
-    throw new Error('Authentication required');
-  }
-  return request.user as AuthenticatedUser;
-}
-
 export async function getRandomQuote(request: FastifyRequest, reply: FastifyReply) {
   try {
     const user = (request.user as AuthenticatedUser) || null;
@@ -38,7 +31,7 @@ export async function likeQuote(
 ) {
   try {
     const { id: quoteId } = request.params;
-    const user = requireAuth(request);
+    const user = request.user as AuthenticatedUser;
     const updatedQuote = await quoteService.likeQuote(user.id, Number(quoteId));
     return reply.send(updatedQuote);
   } catch (error) {
@@ -64,7 +57,7 @@ export async function rateQuote(
 
   try {
     const { id: quoteId } = request.params;
-    const user = requireAuth(request);
+    const user = request.user as AuthenticatedUser;
     const updatedQuote = await quoteService.rateQuote(
       user.id,
       Number(quoteId),
@@ -83,16 +76,16 @@ export async function rateQuote(
 }
 
 export async function searchQuotes(
-  request: FastifyRequest<{ Querystring: { q: string } }>,
+  request: FastifyRequest<{ Querystring: { q: string; page: string } }>,
   reply: FastifyReply
 ) {
-  const { q: searchTerm } = request.query;
+  const { q: searchTerm, page = '1' } = request.query;
   if (!searchTerm || searchTerm.trim().length < 2) {
     return reply.status(400).send({ error: 'Search term must be at least 2 characters long.' });
   }
-
+  console.log('page', page);
   try {
-    const user = (request.user as AuthenticatedUser) || null;
+    const user = request.user as AuthenticatedUser;
     const quotes = await quoteService.searchQuotes(searchTerm, user);
     return reply.send(quotes);
   } catch (error) {
@@ -103,7 +96,7 @@ export async function searchQuotes(
 
 export async function getLikedQuotes(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const user = requireAuth(request);
+    const user = request.user as AuthenticatedUser;
     const quotes = await quoteService.getLikedQuotes(user.id);
     return reply.send(quotes);
   } catch (error) {

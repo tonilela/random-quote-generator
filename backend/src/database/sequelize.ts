@@ -10,10 +10,13 @@ export const sequelize = new Sequelize(config.DATABASE_URL, {
   logging: false,
   models: [Quote, User, QuoteLike, QuoteRating],
   dialectOptions: {
-    ssl: process.env.NODE_ENV === 'production' ? {
-      require: true,
-      rejectUnauthorized: false
-    } : false
+    ssl:
+      process.env.NODE_ENV === 'production'
+        ? {
+            require: true,
+            rejectUnauthorized: false,
+          }
+        : false,
   },
 });
 
