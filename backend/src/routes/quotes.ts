@@ -9,6 +9,7 @@ import {
 } from '../controllers/quoteController';
 import { ValidateRequest } from '../middleware/validation';
 import {
+  likedQuoteQuerySchema,
   paramsWithIdSchema,
   rateQuoteBodySchema,
   searchQuotesQuerySchema,
@@ -47,7 +48,7 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.get(
     '/quotes/liked',
     {
-      preHandler: [server.authenticate as any],
+      preHandler: [server.authenticate as any, ValidateRequest({ query: likedQuoteQuerySchema })],
     },
     getLikedQuotes
   );

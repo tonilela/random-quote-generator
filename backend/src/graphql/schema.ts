@@ -22,10 +22,21 @@ export const schema = `
     user: User!
   }
 
+  type PaginationInfo {
+    currentPage: Int!
+    totalPages: Int!
+    totalCount: Int!
+  }
+
+  type PaginatedQuotes {
+    quotes: [Quote!]!
+    pagination: PaginationInfo!
+  }
+
   type Query {
     randomQuote: Quote
-    likedQuotes: [Quote!]
-    searchQuotes(term: String!, page: String!): [Quote!]
+    likedQuotes(page: Int!): PaginatedQuotes!
+    searchQuotes(term: String!, page: Int!): PaginatedQuotes!
   }
 
   type Mutation {

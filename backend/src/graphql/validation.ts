@@ -21,8 +21,14 @@ export type SearchQuotesGqlType = z.infer<typeof searchQuotesGqlSchema>;
 
 export const likeQuoteGqlSchema = z.object({
   quoteId: z.number().int().positive(),
+  page: z.coerce.number().int().positive().optional().default(1),
 });
 export type LikeQuoteGqlType = z.infer<typeof likeQuoteGqlSchema>;
+
+export const likedQuoteGqlSchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+});
+export type LikedQuoteGqlType = z.infer<typeof likeQuoteGqlSchema>;
 
 export const rateQuoteGqlSchema = z.object({
   quoteId: z.number().int().positive(),

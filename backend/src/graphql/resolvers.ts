@@ -15,6 +15,8 @@ import {
   RateQuoteGqlType,
   SearchQuotesGqlType,
   RegisterGqlType,
+  likedQuoteGqlSchema,
+  LikedQuoteGqlType,
 } from './validation';
 
 interface AuthenticatedUser {
@@ -33,13 +35,19 @@ export const resolvers: IResolvers<unknown, AppContext> = {
   Query: {
     randomQuote: protectedResolver((_parent, _args, context) => {
       if (!context.user) throw new Error('Authentication required. Please provide a valid token.');
-      return quoteService.getRandomQuote(context.user);
+      return quoteService.getRandomQuote({ userId: context.user.id });
     }),
 
-    likedQuotes: protectedResolver((_parent, _args, context) => {
-      if (!context.user) throw new Error('Authentication required. Please provide a valid token.');
-      return quoteService.getLikedQuotes(context.user.id);
-    }),
+    likedQuotes: protectedResolver(
+      validatedResolver(likedQuoteGqlSchema, (_parent, args, context) => {
+        if (!context.user)
+          throw new Error('Authentication required. Please provide a valid token.');
+
+        const { page } = args as LikedQuoteGqlType;
+
+        return quoteService.getLikedQuotes({ userId: context.user.id, page });
+      })
+    ),
 
     searchQuotes: protectedResolver(
       validatedResolver(searchQuotesGqlSchema, (_parent, args, context) => {
@@ -48,7 +56,7 @@ export const resolvers: IResolvers<unknown, AppContext> = {
 
         const { term, page } = args as SearchQuotesGqlType;
         console.log(page);
-        return quoteService.searchQuotes(term, context.user);
+        return quoteService.searchQuotes({ searchTerm: term, userId: context.user.id, page });
       })
     ),
   },
@@ -75,7 +83,7 @@ export const resolvers: IResolvers<unknown, AppContext> = {
 
         const { quoteId } = args as LikeQuoteGqlType;
 
-        return quoteService.likeQuote(context.user.id, quoteId);
+        return quoteService.likeQuote({ userId: context.user.id, quoteId });
       })
     ),
 
@@ -86,7 +94,7 @@ export const resolvers: IResolvers<unknown, AppContext> = {
 
         const { quoteId, rating } = args as RateQuoteGqlType;
 
-        return quoteService.rateQuote(context.user.id, quoteId, rating);
+        return quoteService.rateQuote({ userId: context.user.id, quoteId, rating });
       })
     ),
   },

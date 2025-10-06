@@ -5,12 +5,6 @@ import { QuoteRating } from '../models/quoteRating';
 
 import { sequelize } from '../database/sequelize';
 
-interface AuthenticatedUser {
-  id: string;
-  name: string;
-  email: string;
-}
-
 interface RatingStats {
   averageRating: string;
   totalRatings: string;
@@ -39,13 +33,31 @@ interface QuoteWithIncludedRatings {
   ratings?: Array<{ rating: number }>;
 }
 
-export const getRandomQuote = async (
-  user: AuthenticatedUser | null
-): Promise<QuoteWithUserData> => {
+interface PaginatedQuotesResponse {
+  quotes: QuoteWithUserData[];
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalCount: number;
+  };
+}
+
+interface QuoteWithIncludes extends QuoteWithUserData {
+  // These properties are added by the 'include' in searchQuotes
+  // The names (e.g., QuoteLikes) are determined by your model names
+  QuoteLikes?: { id: number }[];
+  QuoteRatings?: { rating: number }[];
+}
+
+export const getRandomQuote = async ({
+  userId,
+}: {
+  userId: string;
+}): Promise<QuoteWithUserData> => {
   let quote: Quote | null = null;
-  if (user) {
-    const likeCount = await QuoteLike.count({ where: { userId: user.id } });
-    const ratingCount = await QuoteRating.count({ where: { userId: user.id } });
+  if (userId) {
+    const likeCount = await QuoteLike.count({ where: { userId } });
+    const ratingCount = await QuoteRating.count({ where: { userId } });
     if (likeCount + ratingCount < 5 && Math.random() < 0.5) {
       const topQuotes = await Quote.findAll({
         where: { averageRating: { [Op.gte]: 4.0 }, totalRatings: { [Op.gte]: 2 } },
@@ -65,10 +77,10 @@ export const getRandomQuote = async (
 
   let userHasLiked = false,
     userRating = 0;
-  if (user) {
-    const like = await QuoteLike.findOne({ where: { userId: user.id, quoteId: quote.id } });
+  if (userId) {
+    const like = await QuoteLike.findOne({ where: { userId, quoteId: quote.id } });
     userHasLiked = !!like;
-    const rating = await QuoteRating.findOne({ where: { userId: user.id, quoteId: quote.id } });
+    const rating = await QuoteRating.findOne({ where: { userId, quoteId: quote.id } });
     userRating = rating ? rating.rating : 0;
   }
 
@@ -76,7 +88,13 @@ export const getRandomQuote = async (
   return { ...plainQuote, liked: userHasLiked, userRating };
 };
 
-export const likeQuote = async (userId: string, quoteId: number): Promise<Quote> => {
+export const likeQuote = async ({
+  userId,
+  quoteId,
+}: {
+  userId: string;
+  quoteId: number;
+}): Promise<Quote> => {
   return sequelize.transaction(async (t) => {
     const quote = await Quote.findByPk(quoteId, { transaction: t });
     if (!quote) throw new Error('Quote not found');
@@ -97,11 +115,15 @@ export const likeQuote = async (userId: string, quoteId: number): Promise<Quote>
   });
 };
 
-export const rateQuote = async (
-  userId: string,
-  quoteId: number,
-  rating: number
-): Promise<QuoteWithUserData> => {
+export const rateQuote = async ({
+  userId,
+  quoteId,
+  rating,
+}: {
+  userId: string;
+  quoteId: number;
+  rating: number;
+}): Promise<QuoteWithUserData> => {
   return sequelize.transaction(async (t) => {
     const quote = await Quote.findByPk(quoteId, { transaction: t });
     if (!quote) throw new Error('Quote not found');
@@ -138,71 +160,89 @@ export const rateQuote = async (
   });
 };
 
-export const searchQuotes = async (
-  searchTerm: string,
-  user: AuthenticatedUser | null
-): Promise<QuoteWithUserData[]> => {
-  const foundQuotes = await Quote.findAll({
+export const searchQuotes = async ({
+  searchTerm,
+  userId,
+  page,
+}: {
+  searchTerm: string;
+  userId: string;
+  page: number;
+}): Promise<PaginatedQuotesResponse> => {
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  const includes = [];
+  if (userId) {
+    includes.push(
+      { model: QuoteLike, where: { userId }, required: false, attributes: ['id'] },
+      { model: QuoteRating, where: { userId }, required: false, attributes: ['rating'] }
+    );
+  }
+
+  const { count, rows: foundQuotes } = await Quote.findAndCountAll({
     where: {
       [Op.or]: [
         { content: { [Op.iLike]: `%${searchTerm}%` } },
         { author: { [Op.iLike]: `%${searchTerm}%` } },
       ],
     },
-    limit: 20,
+    limit,
+    offset,
+    include: includes,
+    distinct: true,
   });
 
-  let responseQuotes: QuoteWithUserData[] = foundQuotes.map(
-    (q) =>
-      ({
-        ...q.get({ plain: true }),
-        liked: false,
-        userRating: 0,
-      }) as QuoteWithUserData
-  );
+  const quotes = foundQuotes.map((quote) => {
+    const plainQuote = quote.get({ plain: true }) as QuoteWithIncludes;
+    const liked = !!(userId && plainQuote.QuoteLikes && plainQuote.QuoteLikes?.length > 0);
+    const userRating = plainQuote.QuoteRatings?.[0]?.rating || 0;
+    return { ...(plainQuote as QuoteWithUserData), liked, userRating };
+  });
 
-  if (user && responseQuotes.length > 0) {
-    const quoteIds = responseQuotes.map((q) => q.id);
-    const likes = await QuoteLike.findAll({ where: { userId: user.id, quoteId: quoteIds } });
-    const ratings = await QuoteRating.findAll({ where: { userId: user.id, quoteId: quoteIds } });
-    const likedIds = new Set(likes.map((l) => l.quoteId));
-    const ratingsMap = new Map(ratings.map((r) => [r.quoteId, r.rating]));
-
-    responseQuotes = responseQuotes.map((quote) => ({
-      ...quote,
-      liked: likedIds.has(quote.id),
-      userRating: ratingsMap.get(quote.id) || 0,
-    }));
-  }
-  return responseQuotes;
+  return {
+    quotes,
+    pagination: {
+      totalCount: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    },
+  };
 };
 
-export const getLikedQuotes = async (userId: string): Promise<QuoteWithUserData[]> => {
-  const likedQuotesWithData = await Quote.findAll({
+export const getLikedQuotes = async ({
+  userId,
+  page,
+}: {
+  userId: string;
+  page: number;
+}): Promise<PaginatedQuotesResponse> => {
+  const limit = 10;
+  const offset = (page - 1) * limit;
+
+  const { count, rows: likedQuotesWithData } = await Quote.findAndCountAll({
     include: [
       { model: QuoteLike, where: { userId }, attributes: [], required: true },
       { model: QuoteRating, where: { userId }, attributes: ['rating'], required: false },
     ],
     order: [['createdAt', 'DESC']],
+    offset,
+    limit,
+    distinct: true,
   });
 
-  return likedQuotesWithData.map((quote) => {
+  const quotes = likedQuotesWithData.map((quote) => {
     const plainQuote = quote.get({ plain: true }) as QuoteWithIncludedRatings;
-    const userRating =
-      plainQuote.ratings && plainQuote.ratings.length > 0
-        ? (plainQuote.ratings[0]?.rating ?? 0)
-        : 0;
-
-    return {
-      id: plainQuote.id,
-      content: plainQuote.content,
-      author: plainQuote.author,
-      totalLikes: plainQuote.totalLikes,
-      totalRatings: plainQuote.totalRatings,
-      averageRating: plainQuote.averageRating,
-      createdAt: plainQuote.createdAt,
-      liked: true,
-      userRating,
-    };
+    const userRating = plainQuote.ratings?.[0]?.rating ?? 0;
+    return { ...(plainQuote as QuoteWithUserData), liked: true, userRating };
   });
+
+  return {
+    quotes,
+    pagination: {
+      totalCount: count,
+      totalPages: Math.ceil(count / limit),
+      currentPage: page,
+    },
+  };
 };

@@ -12,6 +12,7 @@ import {
 
 import { QuoteCard } from '../QuoteComponents/QuoteCard';
 import { SearchBar } from '../QuoteComponents/SearchBar';
+import { PaginationComponent } from '../Common/PaginationComponent';
 import {
   getRandomQuote,
   likeQuote,
@@ -34,6 +35,10 @@ interface QuoteWithInteractions {
 }
 
 type ViewMode = 'random' | 'search' | 'favorites';
+interface PaginationInfo {
+  currentPage: number;
+  totalPages: number;
+}
 
 export default function HomePage() {
   const [quotes, setQuotes] = useState<QuoteWithInteractions[]>([]);
@@ -41,7 +46,10 @@ export default function HomePage() {
   const [isContentLoading, setIsContentLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewMode, setViewMode] = useState<ViewMode>('random');
-
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    currentPage: 1,
+    totalPages: 1,
+  });
   const fetchRandomQuote = useCallback(async () => {
     setIsContentLoading(true);
     try {
@@ -55,11 +63,12 @@ export default function HomePage() {
     }
   }, []);
 
-  const fetchLikedQuotes = useCallback(async () => {
+  const fetchLikedQuotes = useCallback(async (page: number) => {
     setIsContentLoading(true);
     try {
-      const likedQuotes = await getLikedQuotes();
-      setQuotes(likedQuotes.map((q: any) => ({ ...q, liked: true })));
+      const response = await getLikedQuotes(page);
+      setQuotes(response.quotes.map((q: any) => ({ ...q, liked: true })));
+      setPagination(response.pagination);
     } catch (error) {
       console.error('Failed to fetch liked quotes:', error);
       setQuotes([]);
@@ -86,12 +95,13 @@ export default function HomePage() {
   useEffect(() => {
     if (loading) return;
     setSearchTerm('');
+    setPagination({ currentPage: 1, totalPages: 1 });
 
     const fetchContentForView = async () => {
       if (viewMode === 'random') {
         await fetchRandomQuote();
       } else if (viewMode === 'favorites') {
-        await fetchLikedQuotes();
+        await fetchLikedQuotes(1);
       } else if (viewMode === 'search') {
         setQuotes([]);
       }
@@ -109,8 +119,9 @@ export default function HomePage() {
       const performSearch = async () => {
         setIsContentLoading(true);
         try {
-          const searchResults = await searchQuotes(searchTerm);
-          setQuotes(searchResults);
+          const response = await searchQuotes(searchTerm, pagination.currentPage);
+          setQuotes(response.quotes);
+          setPagination(response.pagination);
         } catch (error) {
           console.error('Search failed:', error);
           setQuotes([]);
@@ -122,27 +133,33 @@ export default function HomePage() {
     }, 500);
 
     return () => clearTimeout(searchTimer);
+  }, [searchTerm, viewMode, pagination.currentPage]);
+
+  useEffect(() => {
+    if (viewMode === 'search') {
+      setPagination({ currentPage: 1, totalPages: 1 });
+    }
   }, [searchTerm, viewMode]);
+
+  const handlePageChange = (event: React.ChangeEvent<unknown>, newPage: number) => {
+    setPagination((prev) => ({ ...prev, currentPage: newPage }));
+    if (viewMode === 'favorites') {
+      fetchLikedQuotes(newPage);
+    }
+  };
 
   const handleLike = async (id: number, currentLikedStatus: boolean) => {
     try {
-      const updatedQuoteFromServer = await likeQuote(id);
+      await likeQuote(id);
       if (viewMode === 'favorites' && currentLikedStatus) {
-        setQuotes((prev) => prev.filter((q) => q.id !== id));
+        fetchLikedQuotes(pagination.currentPage);
       } else {
-        setQuotes((prev) =>
-          prev.map((q) =>
-            q.id === id
-              ? { ...q, liked: !q.liked, totalLikes: updatedQuoteFromServer.totalLikes }
-              : q
-          )
-        );
+        setQuotes((prev) => prev.map((q) => (q.id === id ? { ...q, liked: !q.liked } : q)));
       }
     } catch (error) {
       console.error('Handle like failed:', error);
     }
   };
-
   const handleRate = async (id: number, rating: number) => {
     try {
       const updatedQuoteFromServer = await rateQuote(id, rating);
@@ -233,6 +250,13 @@ export default function HomePage() {
             </Grid>
           )}
         </Box>
+        {viewMode !== 'random' && !isContentLoading && (
+          <PaginationComponent
+            count={pagination.totalPages}
+            page={pagination.currentPage}
+            onChange={handlePageChange}
+          />
+        )}
       </Container>
     </Box>
   );

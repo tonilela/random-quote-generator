@@ -18,3 +18,9 @@ export const searchQuotesQuerySchema = z.object({
 });
 
 export type SearchQuoteType = z.infer<typeof searchQuotesQuerySchema>;
+
+export const likedQuoteQuerySchema = z.object({
+  page: z.coerce.number().int().positive().optional().default(1),
+});
+
+export type LikedQuoteType = z.infer<typeof likedQuoteQuerySchema>;
