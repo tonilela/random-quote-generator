@@ -90,13 +90,13 @@ export const searchQuotes = async (searchTerm: string) => {
   if (searchTerm.trim().length < 2) return [];
   if (getApiMode() === 'graphql') {
     const query = `
-      query Search($term: String!) {
-        searchQuotes(term: $term) { id, content, author, liked, userRating, totalLikes, averageRating }
+      query Search($term: String!, $page: String!) {
+        searchQuotes(term: $term, page: $page) { id, content, author, liked, userRating, totalLikes, averageRating }
       }`;
-    const data = await graphqlRequest(query, { term: searchTerm });
+    const data = await graphqlRequest(query, { term: searchTerm, page: '1' });
     return data.searchQuotes;
   } else {
-    const response = await apiClient.get('/api/quotes/search', { params: { q: searchTerm } });
+    const response = await apiClient.get('/api/quotes/search', { params: { term: searchTerm } });
     return response.data;
   }
 };

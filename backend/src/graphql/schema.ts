@@ -25,7 +25,7 @@ export const schema = `
   type Query {
     randomQuote: Quote
     likedQuotes: [Quote!]
-    searchQuotes(term: String!): [Quote!]
+    searchQuotes(term: String!, page: String!): [Quote!]
   }
 
   type Mutation {
