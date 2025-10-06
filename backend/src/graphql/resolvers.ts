@@ -1,5 +1,6 @@
 import { IResolvers, MercuriusContext } from 'mercurius';
 import { FastifyRequest } from 'fastify';
+import { z } from 'zod';
 import * as authService from '../services/authService';
 import * as quoteService from '../services/quoteService';
 import { protectedResolver, validatedResolver } from './resolverMiddleware';
