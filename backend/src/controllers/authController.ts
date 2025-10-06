@@ -1,21 +1,16 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import * as authService from '../services/authService';
+import { LoginUserBodyType, RegisterUserBodyType } from '../schemas/authSchema';
 
-const registerUserSchema = z.object({
-  name: z.string().min(2, 'Name must be at least 2 characters long'),
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters long'),
-});
-
-const loginUserSchema = z.object({
-  email: z.string().email(),
-  password: z.string(),
-});
-
-export async function registerUser(request: FastifyRequest, reply: FastifyReply) {
+export async function registerUser(
+  request: FastifyRequest<{
+    Body: RegisterUserBodyType;
+  }>,
+  reply: FastifyReply
+) {
   try {
-    const { name, email, password } = registerUserSchema.parse(request.body);
+    const { name, email, password } = request.body;
     const newUser = await authService.register(name, email, password);
     return reply.status(201).send(newUser);
   } catch (error) {
@@ -27,9 +22,14 @@ export async function registerUser(request: FastifyRequest, reply: FastifyReply)
   }
 }
 
-export async function loginUser(request: FastifyRequest, reply: FastifyReply) {
+export async function loginUser(
+  request: FastifyRequest<{
+    Body: LoginUserBodyType;
+  }>,
+  reply: FastifyReply
+) {
   try {
-    const { email, password } = loginUserSchema.parse(request.body);
+    const { email, password } = request.body;
     const user = await authService.login(email, password);
 
     const payload = { id: user.id, name: user.name, email: user.email };

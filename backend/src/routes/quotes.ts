@@ -7,6 +7,12 @@ import {
   getLikedQuotes,
   searchQuotes,
 } from '../controllers/quoteController';
+import { ValidateRequest } from '../middleware/validation';
+import {
+  paramsWithIdSchema,
+  rateQuoteBodySchema,
+  searchQuotesQuerySchema,
+} from '../schemas/qouteSchema';
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function quoteRoutes(server: FastifyInstance) {
@@ -20,17 +26,20 @@ export async function quoteRoutes(server: FastifyInstance) {
   );
 
   server.post(
-    '/quotes/:id/like',
+    '/quotes/:quoteId/like',
     {
-      preHandler: [server.authenticate as any],
+      preHandler: [server.authenticate as any, ValidateRequest({ params: paramsWithIdSchema })],
     },
     likeQuote
   );
 
   server.post(
-    '/quotes/:id/rate',
+    '/quotes/:quoteId/rate',
     {
-      preHandler: [server.authenticate as any],
+      preHandler: [
+        server.authenticate as any,
+        ValidateRequest({ params: paramsWithIdSchema, body: rateQuoteBodySchema }),
+      ],
     },
     rateQuote
   );
@@ -46,7 +55,7 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.get(
     '/quotes/search',
     {
-      preHandler: [server.authenticate as any],
+      preHandler: [server.authenticate as any, ValidateRequest({ query: searchQuotesQuerySchema })],
     },
     searchQuotes
   );

@@ -1,7 +1,7 @@
 import 'reflect-metadata';
-import fastify, { FastifyRequest, FastifyReply } from 'fastify';
+import fastify, { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
-import jwt from '@fastify/jwt';
+import jwt, { JWT } from '@fastify/jwt';
 import mercurius from 'mercurius';
 import { config } from './config/config';
 import { connectToDatabase } from './database/sequelize';
@@ -25,7 +25,7 @@ interface AuthenticatedUser {
 }
 
 interface AppContext {
-  server: any;
+  server: FastifyInstance;
   user: AuthenticatedUser | null;
 }
 
@@ -38,8 +38,10 @@ declare module 'fastify' {
       QuoteRating: typeof QuoteRating;
     };
     authenticate: (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    jwt: JWT;
   }
 }
+
 const server = fastify({
   logger: process.env.NODE_ENV === 'development' ? { level: 'info' } : { level: 'warn' },
 });

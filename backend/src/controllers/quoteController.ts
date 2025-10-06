@@ -1,7 +1,7 @@
 import { FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import * as quoteService from '../services/quoteService';
-import { AuthenticatedUser } from '../server';
+import { ParamsWithIdType, RateQuoteBodyType, SearchQuoteType } from '../schemas/qouteSchema';
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error) {
@@ -16,7 +16,7 @@ function isQuoteNotFoundError(error: unknown): boolean {
 
 export async function getRandomQuote(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const user = (request.user as AuthenticatedUser) || null;
+    const user = request.user;
     const quote = await quoteService.getRandomQuote(user);
     return reply.send(quote);
   } catch (error) {
@@ -26,12 +26,12 @@ export async function getRandomQuote(request: FastifyRequest, reply: FastifyRepl
 }
 
 export async function likeQuote(
-  request: FastifyRequest<{ Params: { id: string } }>,
+  request: FastifyRequest<{ Params: ParamsWithIdType }>,
   reply: FastifyReply
 ) {
   try {
-    const { id: quoteId } = request.params;
-    const user = request.user as AuthenticatedUser;
+    const { quoteId } = request.params;
+    const user = request.user;
     const updatedQuote = await quoteService.likeQuote(user.id, Number(quoteId));
     return reply.send(updatedQuote);
   } catch (error) {
@@ -46,7 +46,7 @@ export async function likeQuote(
 }
 
 export async function rateQuote(
-  request: FastifyRequest<{ Params: { id: string }; Body: { rating: number } }>,
+  request: FastifyRequest<{ Params: ParamsWithIdType; Body: RateQuoteBodyType }>,
   reply: FastifyReply
 ) {
   const ratingSchema = z.number().int().min(1).max(5);
@@ -56,8 +56,8 @@ export async function rateQuote(
   }
 
   try {
-    const { id: quoteId } = request.params;
-    const user = request.user as AuthenticatedUser;
+    const { quoteId } = request.params;
+    const user = request.user;
     const updatedQuote = await quoteService.rateQuote(
       user.id,
       Number(quoteId),
@@ -76,16 +76,17 @@ export async function rateQuote(
 }
 
 export async function searchQuotes(
-  request: FastifyRequest<{ Querystring: { q: string; page: string } }>,
+  request: FastifyRequest<{ Querystring: SearchQuoteType }>,
   reply: FastifyReply
 ) {
-  const { q: searchTerm, page = '1' } = request.query;
+  console.log('wee here---------');
+  const { term: searchTerm } = request.query;
   if (!searchTerm || searchTerm.trim().length < 2) {
     return reply.status(400).send({ error: 'Search term must be at least 2 characters long.' });
   }
-  console.log('page', page);
   try {
-    const user = request.user as AuthenticatedUser;
+    const user = request.user;
+    console.log('wee here---------');
     const quotes = await quoteService.searchQuotes(searchTerm, user);
     return reply.send(quotes);
   } catch (error) {
@@ -96,7 +97,7 @@ export async function searchQuotes(
 
 export async function getLikedQuotes(request: FastifyRequest, reply: FastifyReply) {
   try {
-    const user = request.user as AuthenticatedUser;
+    const user = request.user;
     const quotes = await quoteService.getLikedQuotes(user.id);
     return reply.send(quotes);
   } catch (error) {
