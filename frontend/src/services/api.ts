@@ -86,31 +86,39 @@ export const rateQuote = async (quoteId: number, rating: number) => {
   }
 };
 
-export const searchQuotes = async (searchTerm: string) => {
+export const searchQuotes = async (searchTerm: string, page: number) => {
   if (searchTerm.trim().length < 2) return [];
   if (getApiMode() === 'graphql') {
     const query = `
-      query Search($term: String!, $page: String!) {
-        searchQuotes(term: $term, page: $page) { id, content, author, liked, userRating, totalLikes, averageRating }
-      }`;
-    const data = await graphqlRequest(query, { term: searchTerm, page: '1' });
+      query Search($term: String!, $page: Int!) {
+        searchQuotes(term: $term, page: $page) {
+          quotes { id, content, author, liked, userRating, totalLikes, averageRating }
+          pagination { currentPage, totalPages }
+      }}`;
+    const data = await graphqlRequest(query, { term: searchTerm, page });
     return data.searchQuotes;
   } else {
-    const response = await apiClient.get('/api/quotes/search', { params: { term: searchTerm } });
+    const response = await apiClient.get('/api/quotes/search', {
+      params: { term: searchTerm, page: page },
+    });
     return response.data;
   }
 };
 
-export const getLikedQuotes = async () => {
+export const getLikedQuotes = async (page: number) => {
   if (getApiMode() === 'graphql') {
     const query = `
-      query GetFavorites {
-        likedQuotes { id, content, author, userRating, totalLikes, averageRating }
-      }`;
-    const data = await graphqlRequest(query);
+      query GetFavorites($page: Int!) {
+        likedQuotes (page: $page) {
+          quotes { id, content, author, userRating, totalLikes, averageRating }
+          pagination { currentPage, totalPages }
+      }}`;
+    const data = await graphqlRequest(query, { page });
     return data.likedQuotes;
   } else {
-    const response = await apiClient.get('/api/quotes/liked');
+    const response = await apiClient.get('/api/quotes/liked', {
+      params: { page },
+    });
     return response.data;
   }
 };
