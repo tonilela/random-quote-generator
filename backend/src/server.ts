@@ -9,18 +9,15 @@ import {
   ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import { config } from './config/config.js';
-import { connectToDatabase } from './database/sequelize';
-
-import { quoteRoutes } from './routes/quotes';
-import { authRoutes } from './routes/auth';
-
-import { schema } from './graphql/schema';
-import { resolvers } from './graphql/resolvers';
-
-import { User } from './models/user';
-import { Quote } from './models/quote';
-import { QuoteLike } from './models/quoteLike';
-import { QuoteRating } from './models/quoteRating';
+import { connectToDatabase } from './database/sequelize.js';
+import { quoteRoutes } from './routes/quotes.js';
+import { authRoutes } from './routes/auth.js';
+import { schema } from './graphql/schema.js';
+import { resolvers } from './graphql/resolvers.js';
+import { User } from './models/user.js';
+import { Quote } from './models/quote.js';
+import { QuoteLike } from './models/quoteLike.js';
+import { QuoteRating } from './models/quoteRating.js';
 
 interface AuthenticatedUser {
   id: string;
