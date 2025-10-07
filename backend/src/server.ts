@@ -8,7 +8,7 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod';
-import { config } from './config/config.js';
+import { config } from './config/config';
 import { connectToDatabase } from './database/sequelize';
 
 import { quoteRoutes } from './routes/quotes';
@@ -52,6 +52,10 @@ const server = fastify({
 }).withTypeProvider<ZodTypeProvider>();
 
 async function buildServer() {
+  server.get('/health', async (request, reply) => {
+    return reply.status(200).send({ status: 'ok' });
+  });
+
   server.setValidatorCompiler(validatorCompiler);
   server.setSerializerCompiler(serializerCompiler);
 
