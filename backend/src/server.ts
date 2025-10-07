@@ -91,8 +91,7 @@ async function start() {
     const host = '0.0.0.0';
     
     await app.listen({ port, host });
-    
-    // Fix your console logs to show the correct binding info
+
     console.log(`🚀 Server running on http://${host}:${port}`);
     console.log(`📖 GraphiQL IDE available at http://${host}:${port}/graphiql`);
     console.log(`🎯 Heroku should be able to reach this on port ${port}`);
