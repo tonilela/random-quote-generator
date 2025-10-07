@@ -1,4 +1,6 @@
-export const schema = `
+import { buildSchema } from 'graphql';
+
+const typeDefs = `
   type Quote {
     id: Int!
     content: String!
@@ -46,3 +48,5 @@ export const schema = `
     rateQuote(quoteId: Int!, rating: Int!): Quote!
   }
 `;
+
+export const schema = buildSchema(typeDefs);

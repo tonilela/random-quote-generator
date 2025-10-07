@@ -7,16 +7,10 @@ import {
   getLikedQuotes,
   searchQuotes,
 } from '../controllers/quoteController';
-import {
-  likedQuoteQuerySchema,
-  paramsWithIdSchema,
-  rateQuoteBodySchema,
-  searchQuotesQuerySchema,
-} from '../schemas/qouteSchema';
+
 
 // eslint-disable-next-line @typescript-eslint/require-await
 export async function quoteRoutes(server: FastifyInstance) {
-  // Use type assertions to avoid websocket type conflicts
   server.get(
     '/quotes/random',
     {
@@ -29,9 +23,6 @@ export async function quoteRoutes(server: FastifyInstance) {
     '/quotes/:quoteId/like',
     {
       preHandler: [server.authenticate as any],
-      schema: {
-        params: paramsWithIdSchema
-      }
     },
     likeQuote
   );
@@ -39,12 +30,7 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.post(
     '/quotes/:quoteId/rate',
     {
-      preHandler: [
-        server.authenticate as any
-      ],
-      schema: {
-        params: paramsWithIdSchema, body: rateQuoteBodySchema 
-      }
+      preHandler: [server.authenticate as any],
     },
     rateQuote
   );
@@ -53,9 +39,6 @@ export async function quoteRoutes(server: FastifyInstance) {
     '/quotes/liked',
     {
       preHandler: [server.authenticate as any],
-      schema: {
-        querystring: likedQuoteQuerySchema 
-      }
     },
     getLikedQuotes
   );
@@ -64,9 +47,6 @@ export async function quoteRoutes(server: FastifyInstance) {
     '/quotes/search',
     {
       preHandler: [server.authenticate as any],
-      schema: {
-        querystring: searchQuotesQuerySchema,
-      },
     },
     searchQuotes
   );

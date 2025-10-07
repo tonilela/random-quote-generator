@@ -6,18 +6,10 @@ import { loginUserSchema, registerUserSchema } from '../schemas/authSchema';
 export async function authRoutes(server: FastifyInstance) {
   server.post(
     '/register',
-    {
-      schema: { body: registerUserSchema }
-    },
     registerUser
   );
   server.post(
     '/login',
-    {
-      schema: {
-        body: loginUserSchema
-      }
-    },
     loginUser
   );
 }

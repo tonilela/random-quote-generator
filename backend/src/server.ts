@@ -3,11 +3,6 @@ import fastify, { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
 import cors from '@fastify/cors';
 import jwt, { JWT } from '@fastify/jwt';
 import mercurius from 'mercurius';
-import {
-  serializerCompiler,
-  validatorCompiler,
-  ZodTypeProvider,
-} from 'fastify-type-provider-zod';
 import { config } from './config/config.js';
 import { connectToDatabase } from './database/sequelize.js';
 import { quoteRoutes } from './routes/quotes.js';
@@ -46,15 +41,12 @@ declare module 'fastify' {
 
 const server = fastify({
   logger: process.env.NODE_ENV === 'development' ? { level: 'info' } : { level: 'warn' },
-}).withTypeProvider<ZodTypeProvider>();
+});
 
 async function buildServer() {
   server.get('/health', async (request, reply) => {
     return reply.status(200).send({ status: 'ok' });
   });
-
-  server.setValidatorCompiler(validatorCompiler);
-  server.setSerializerCompiler(serializerCompiler);
 
   await server.register(cors, { origin: true, credentials: true });
   await server.register(jwt, { secret: config.JWT_SECRET });
@@ -70,7 +62,7 @@ async function buildServer() {
 
   await server.register(mercurius, {
     schema,
-    resolvers: resolvers as any, // Temporarily bypass type checking for resolvers
+    resolvers: resolvers as any,
     context: async (request: FastifyRequest): Promise<AppContext> => {
       let user: AuthenticatedUser | null = null;
       try {
