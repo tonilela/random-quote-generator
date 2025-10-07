@@ -3,6 +3,11 @@ import fastify, { FastifyRequest, FastifyReply, FastifyInstance } from 'fastify'
 import cors from '@fastify/cors';
 import jwt, { JWT } from '@fastify/jwt';
 import mercurius from 'mercurius';
+import {
+  serializerCompiler,
+  validatorCompiler,
+  ZodTypeProvider,
+} from 'fastify-type-provider-zod';
 import { config } from './config/config';
 import { connectToDatabase } from './database/sequelize';
 
@@ -44,9 +49,12 @@ declare module 'fastify' {
 
 const server = fastify({
   logger: process.env.NODE_ENV === 'development' ? { level: 'info' } : { level: 'warn' },
-});
+}).withTypeProvider<ZodTypeProvider>();
 
 async function buildServer() {
+  server.setValidatorCompiler(validatorCompiler);
+  server.setSerializerCompiler(serializerCompiler);
+
   await server.register(cors, { origin: true, credentials: true });
   await server.register(jwt, { secret: config.JWT_SECRET });
 

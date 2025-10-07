@@ -1,10 +1,10 @@
 import { IFieldResolver } from 'mercurius';
-import { ZodError, AnyZodObject } from 'zod';
+import { ZodError, ZodObject } from 'zod';
 import { AppContext } from '../server';
 
 type Resolver = IFieldResolver<unknown, AppContext>;
 
-export function validatedResolver(schema: AnyZodObject, next: Resolver): Resolver {
+export function validatedResolver(schema: ZodObject<any>, next: Resolver): Resolver {
   return (parent, args, context, info) => {
     try {
       const validatedArgs = schema.parse(args);
@@ -12,7 +12,7 @@ export function validatedResolver(schema: AnyZodObject, next: Resolver): Resolve
       return next(parent, validatedArgs, context, info);
     } catch (error) {
       if (error instanceof ZodError) {
-        const firstError = error.errors[0]?.message || 'Invalid input';
+        const firstError = error.issues[0]?.message || 'Invalid input';
         throw new Error(`Validation Error: ${firstError}`);
       }
       throw error;

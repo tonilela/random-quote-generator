@@ -7,7 +7,6 @@ import {
   getLikedQuotes,
   searchQuotes,
 } from '../controllers/quoteController';
-import { ValidateRequest } from '../middleware/validation';
 import {
   likedQuoteQuerySchema,
   paramsWithIdSchema,
@@ -29,7 +28,10 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.post(
     '/quotes/:quoteId/like',
     {
-      preHandler: [server.authenticate as any, ValidateRequest({ params: paramsWithIdSchema })],
+      preHandler: [server.authenticate as any],
+      schema: {
+        params: paramsWithIdSchema
+      }
     },
     likeQuote
   );
@@ -38,9 +40,11 @@ export async function quoteRoutes(server: FastifyInstance) {
     '/quotes/:quoteId/rate',
     {
       preHandler: [
-        server.authenticate as any,
-        ValidateRequest({ params: paramsWithIdSchema, body: rateQuoteBodySchema }),
+        server.authenticate as any
       ],
+      schema: {
+        params: paramsWithIdSchema, body: rateQuoteBodySchema 
+      }
     },
     rateQuote
   );
@@ -48,7 +52,10 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.get(
     '/quotes/liked',
     {
-      preHandler: [server.authenticate as any, ValidateRequest({ query: likedQuoteQuerySchema })],
+      preHandler: [server.authenticate as any],
+      schema: {
+        querystring: likedQuoteQuerySchema 
+      }
     },
     getLikedQuotes
   );
@@ -56,7 +63,10 @@ export async function quoteRoutes(server: FastifyInstance) {
   server.get(
     '/quotes/search',
     {
-      preHandler: [server.authenticate as any, ValidateRequest({ query: searchQuotesQuerySchema })],
+      preHandler: [server.authenticate as any],
+      schema: {
+        querystring: searchQuotesQuerySchema,
+      },
     },
     searchQuotes
   );

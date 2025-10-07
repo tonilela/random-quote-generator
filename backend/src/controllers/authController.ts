@@ -15,7 +15,7 @@ export async function registerUser(
     return reply.status(201).send(newUser);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ message: 'Invalid input', errors: error.errors });
+      return reply.status(400).send({ message: 'Invalid input', errors: error.issues });
     }
     request.log.error({ err: error }, 'User registration failed');
     return reply.status(409).send({ message: (error as Error).message });
@@ -38,7 +38,7 @@ export async function loginUser(
     return reply.send({ token, user: payload });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return reply.status(400).send({ message: 'Invalid input', errors: error.errors });
+      return reply.status(400).send({ message: 'Invalid input', errors: error.issues });
     }
     request.log.error({ err: error }, 'User login failed');
     return reply.status(401).send({ message: (error as Error).message });

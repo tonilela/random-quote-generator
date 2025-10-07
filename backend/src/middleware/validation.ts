@@ -1,10 +1,10 @@
 import { FastifyRequest, FastifyReply, DoneFuncWithErrOrRes } from 'fastify';
-import { ZodError, AnyZodObject } from 'zod';
+import { ZodError, ZodObject } from 'zod';
 
 export function ValidateRequest(schemas: {
-  body?: AnyZodObject;
-  params?: AnyZodObject;
-  query?: AnyZodObject;
+  body?: ZodObject<any>;
+  params?: ZodObject<any>;
+  query?: ZodObject<any>;
 }) {
   return (request: FastifyRequest, reply: FastifyReply, done: DoneFuncWithErrOrRes) => {
     try {
