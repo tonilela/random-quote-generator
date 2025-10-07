@@ -5,17 +5,11 @@ A full-stack quote generator application built with Fastify, React, PostgreSQL, 
 # Features
 
 * Random Quote Generation: Get random quotes from a database of 1400+ quotes
-
 * User Authentication: JWT-based authentication system
-
 * Quote Interactions: Like and rate your favorite quotes (1-5 stars)
-
 * Search Functionality: Search quotes by content or author
-
 * GraphQL API: Modern GraphQL endpoint alongside REST APIs
-
 * Responsive Frontend: Clean React interface
-
 * Database Seeding: Automatic quote population from DummyJSON API
 
 # Tech Stack
@@ -50,10 +44,12 @@ Docker and Docker Compose
 ### Git
 
 Clone the Repository
+
 ```
 git clone <repo-url>
 cd random-quote-generator
 ```
+
 Environment Setup
 Copy the environment example file:
 
@@ -69,22 +65,22 @@ Build and start all services:
 ```
 docker-compose up --build -d
 ```
+
 This command will:
 
 * Build the backend (Fastify API)
-
 * Build the frontend (React app)
-
 * Start PostgreSQL database
-
 * Set up networking between services
 
 ### Seed the Database
+
 After containers are running, populate the database with quotes:
 
 ```
 docker-compose exec server npm run seed
 ```
+
 This will fetch and store 1400+ quotes from the DummyJSON API.
 
 Access the Application
@@ -94,10 +90,9 @@ Backend API: `http://localhost:3001`
 
 GraphiQL Interface: `http://localhost:3001/graphiql`
 
-Database: localhost:5433 (PostgreSQL)
+Database: localhost:5433 (PostgreSQL).
 
 # Development Commands
-
 
 #### View logs
 
@@ -106,18 +101,22 @@ docker-compose logs -f
 ```
 
 #### Stop services
+
 ```
 docker-compose down
 ```
+
 #### Rebuild specific service
+
 ```
 docker-compose up --build server
 ```
+
 #### Access backend container
+
 ```
 docker-compose exec server bash
 ```
-
 
 ## API Endpoints
 
@@ -147,21 +146,26 @@ Complete Reset
 To start completely fresh:
 
 ##### Remove all containers, images, and volumes
+
 ```
 docker-compose down --rmi all -v --remove-orphans
 docker system prune -a -f
 ```
 
 ##### Rebuild everything
+
 ```
 docker-compose up --build -d
 ```
+
 ##### Re-seed database
+
 ```
 docker-compose exec server npm run seed
 ```
 
 # 🚀 Production Deployment
+
 This application is deployed on Heroku using separate apps for frontend and backend:
 
 Live Application
