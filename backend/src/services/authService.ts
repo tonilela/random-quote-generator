@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import * as bcrypt from 'bcryptjs';
 import { User, UserAttributes } from '../models/user';
 
 export const register = async (name: string, email: string, password: string) => {
