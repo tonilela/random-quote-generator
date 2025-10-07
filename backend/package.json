@@ -10,7 +10,7 @@
     "dev": "tsx watch src/server.ts",
     "build": "tsc && copyfiles -u 1 src/**/*.js src/**/*.json dist/",
     "heroku-postbuild": "npm run build",
-    "start": "node dist/server.js",
+    "start": "npm run build && node dist/server.js",
     "seed": "node dist/scripts/seed.js",
     "test": "echo \"Tests coming soon\"",
     "lint": "eslint \"src/**/*.ts\"",
