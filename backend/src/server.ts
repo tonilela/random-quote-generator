@@ -48,7 +48,11 @@ async function buildServer() {
     return reply.status(200).send({ status: 'ok' });
   });
 
-  await server.register(cors, { origin: true, credentials: true });
+  await server.register(cors, { 
+    origin: [
+      'https://quote-gen-frontend-a50dcae2aad1.herokuapp.com/',
+      'http://localhost:3000'
+    ] , credentials: true });
   await server.register(jwt, { secret: config.JWT_SECRET });
 
   server.decorate('authenticate', async function (request: FastifyRequest, reply: FastifyReply) {
