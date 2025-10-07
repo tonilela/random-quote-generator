@@ -86,16 +86,22 @@ async function start() {
   try {
     await connectToDatabase();
     const app = await buildServer();
+    
     const port = parseInt(process.env.PORT || '3000', 10);
-
-    await app.listen({ port, host: '0.0.0.0' });
-    console.log(`🚀 Server running on http://localhost:${port}`);
-    console.log(`📖 GraphiQL IDE available at http://localhost:${port}/graphiql`);
+    const host = '0.0.0.0';
+    
+    await app.listen({ port, host });
+    
+    // Fix your console logs to show the correct binding info
+    console.log(`🚀 Server running on http://${host}:${port}`);
+    console.log(`📖 GraphiQL IDE available at http://${host}:${port}/graphiql`);
+    console.log(`🎯 Heroku should be able to reach this on port ${port}`);
   } catch (error) {
     console.error('Error starting server:', error);
     process.exit(1);
   }
 }
+
 
 if (require.main === module) {
   void start();
