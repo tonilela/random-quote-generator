@@ -86,7 +86,7 @@ async function start() {
   try {
     await connectToDatabase();
     const app = await buildServer();
-    const port = config.PORT || 3000;
+    const port = parseInt(process.env.PORT || '3000', 10);
 
     await app.listen({ port, host: '0.0.0.0' });
     console.log(`🚀 Server running on http://localhost:${port}`);

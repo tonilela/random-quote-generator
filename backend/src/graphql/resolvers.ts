@@ -8,7 +8,6 @@ import {
   likeQuoteGqlSchema,
   rateQuoteGqlSchema,
   likedQuoteGqlSchema,
-  LikedQuoteGqlType,
 } from './validation.js';
 import type { AppContext } from '../server.js';
 
@@ -26,7 +25,7 @@ export const resolvers: IResolvers<unknown, AppContext> = {
         throw new Error('Authentication required.');
       }
       const validatedArgs = likedQuoteGqlSchema.parse(args);
-      const { page } = validatedArgs as LikedQuoteGqlType;
+      const { page } = validatedArgs;
       return quoteService.getLikedQuotes({ userId: context.user.id, page });
     },
 
