@@ -14,7 +14,7 @@
     "declaration": true,
     "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
-    "incremental": true
+    "incremental": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
