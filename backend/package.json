@@ -8,7 +8,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "build": "tsc && copyfiles -u 1 src/**/*.js src/**/*.json dist/",
+    "build": "tsc",
     "heroku-postbuild": "npm run build",
     "start": "npm run build && node dist/server.js",
     "seed": "node dist/scripts/seed.js",
