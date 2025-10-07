@@ -8,7 +8,7 @@ import {
   validatorCompiler,
   ZodTypeProvider,
 } from 'fastify-type-provider-zod';
-import { config } from './config/config';
+import { config } from './config/config.js';
 import { connectToDatabase } from './database/sequelize';
 
 import { quoteRoutes } from './routes/quotes';
